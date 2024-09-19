@@ -1,2 +1,4 @@
-testEnv
 __pycache__
+.DS_Store*
+testEnv
+
