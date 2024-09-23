@@ -2,6 +2,7 @@ import pandas as pd
 from openai import OpenAI
 from apikey import OPENAI_API_KEY
 
+# TODO: find out how many tokens I use per transaction.
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 file_path = 'events.csv'

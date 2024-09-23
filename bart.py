@@ -11,7 +11,7 @@ def classify_events(csv_file, public_access_threshold=0.5):
     results = []
 
     for _, row in events_df.iterrows():
-        location_match = (row['virtual'] or "Canada" in str(row['location_country']))
+        location_match = (row['virtual'] or "Canada" in str(row['location_city']))
         location_score = 1.0 if location_match else 0.0
         
         event_text = f"{row['title']} {row['description']}"
@@ -29,7 +29,7 @@ def classify_events(csv_file, public_access_threshold=0.5):
             result.update({
                 "description": row['description'],
                 "virtual": row['virtual'],
-                "location_country": row['location_country']
+                "location_city": row['location_city']
             })
 
             results.append(result)
