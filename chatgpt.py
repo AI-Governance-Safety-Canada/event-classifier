@@ -42,8 +42,7 @@ events_df[['in_canada', 'open_to_public']].to_csv(intermediary_csv, index=False)
 # Filter for events that are either virtual or held in Canada, and open to the public
 filtered_events = events_df[
     (events_df['in_canada'].str.contains('True', case=False)) & 
-    (events_df['open_to_public'].str.contains('True', case=False))
-]
+    (events_df['open_to_public'].str.strip().str.casefold() == 'true')]
 
 output_csv = 'chatgpt_events_results.csv'
 filtered_events.to_csv(output_csv, index=False)
