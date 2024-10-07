@@ -2,14 +2,8 @@ import pandas as pd
 from openai import OpenAI
 from apikey import OPENAI_API_KEY
 
-# TODO: find out how many tokens I use per transaction.
-client = OpenAI(api_key=OPENAI_API_KEY)
-
-file_path = 'events.csv'
-events_df = pd.read_csv(file_path)
-
 # Function to check if the event is virtual or in Canada using ChatGPT
-def check_event_in_canada(city, virtual):
+def check_event_in_canada(client, city, virtual):
     if virtual:
         return 'True'
     else:
@@ -22,8 +16,8 @@ def check_event_in_canada(city, virtual):
         return response.choices[0].message.content.strip()
 
 # Function to check if the event is open to the public using ChatGPT
-def check_open_to_public(description):
-    prompt = f"Is this event open to the public? Event description: {description}? Answer True or False"
+def check_open_to_public(client, description):
+    prompt = f"Event description: {description}? Is this event open to the general public? Answer True if yes, False if no. Answer True if you're not sure. Explain how you came to the conclusion."
     response = client.chat.completions.create(model="gpt-4",
     messages=[{"role": "system", "content": "You are a helpful assistant."},
               {"role": "user", "content": prompt}],
@@ -32,19 +26,25 @@ def check_open_to_public(description):
     print(response.choices[0].message.content.strip())
     return response.choices[0].message.content.strip()
 
-events_df['in_canada'] = events_df.apply(lambda row: check_event_in_canada(row['location_city'], row['virtual']), axis=1)
-events_df['open_to_public'] = events_df['description'].apply(lambda desc: check_open_to_public(desc) if pd.notnull(desc) else 'Unknown')
+if __name__ == "__main__":
 
-#debug
-intermediary_csv = 'intermediary_events_df.csv'
-events_df[['in_canada', 'open_to_public']].to_csv(intermediary_csv, index=False)
+    # TODO: find out how many tokens I use per transaction.
+    client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Filter for events that are either virtual or held in Canada, and open to the public
-filtered_events = events_df[
-    (events_df['in_canada'].str.contains('True', case=False)) & 
-    (events_df['open_to_public'].str.strip().str.casefold() == 'true')]
+    file_path = 'events_with_private.csv'
+    events_df = pd.read_csv(file_path)
 
-output_csv = 'chatgpt_events_results.csv'
-filtered_events.to_csv(output_csv, index=False)
+    events_df['in_canada'] = events_df.apply(lambda row: check_event_in_canada(client, row['location_city'], row['virtual']), axis=1)
+    events_df['open_to_public'] = events_df['description'].apply(lambda desc: check_open_to_public(client, desc) if pd.notnull(desc) else 'Unknown')
 
-print(f"Filtered events have been saved to {output_csv}")
+    #debug
+    intermediary_csv = 'intermediary_private_events_df.csv'
+    events_df[['in_canada', 'open_to_public']].to_csv(intermediary_csv, index=False)
+
+    # Filter for events that are either virtual or held in Canada, and open to the public
+    filtered_events = events_df[
+        (events_df['in_canada'].str.contains('True', case=False)) & 
+        (events_df['open_to_public'].str.strip().str.casefold() == 'true')]
+
+    output_csv = 'chatgpt_private_events_results.csv'
+    filtered_events.to_csv(output_csv, index=False)

@@ -23,21 +23,20 @@ def classify_events(csv_file, public_access_threshold=0.5):
                 "title": row['title'],
                 "location_score": location_score,
                 "public_access_score": public_access_score
-            }
+            }   
 
             # debug
-            result.update({
-                "description": row['description'],
-                "virtual": row['virtual'],
-                "location_city": row['location_city']
-            })
-
+            # result.update({
+            #     "description": row['description'],
+            #     "virtual": row['virtual'],
+            #     "location_city": row['location_city']
+            # })
             results.append(result)
 
     results_df = pd.DataFrame(results)
-    results_df.to_csv('bart_events_results.csv', index=False)
+    results_df.to_csv('bart_private_event_results.csv', index=False)
 
 if __name__ == "__main__":
-    csv_file = 'events.csv'
+    csv_file = 'events_with_private.csv'
     public_access_threshold = 0.5
     classify_events(csv_file, public_access_threshold)
