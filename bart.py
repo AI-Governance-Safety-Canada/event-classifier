@@ -1,9 +1,11 @@
+import argparse
+
 from transformers import pipeline
 import pandas as pd
 
-def classify_events(csv_file, public_access_threshold=0.5):
+def classify_events(input_path, output_path, public_access_threshold=0.5):
     classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-    events_df = pd.read_csv(csv_file)
+    events_df = pd.read_csv(input_path)
     
     # Define labels for public access classification
     public_access_labels = ["open to the general public", "restricted access"]
@@ -34,9 +36,22 @@ def classify_events(csv_file, public_access_threshold=0.5):
             results.append(result)
 
     results_df = pd.DataFrame(results)
-    results_df.to_csv('bart_private_event_results.csv', index=False)
+    results_df.to_csv(output_path, index=False)
 
 if __name__ == "__main__":
-    csv_file = 'events_with_private.csv'
+    parser = argparse.ArgumentParser(description="Classify events using ChatGPT")
+    parser.add_argument(
+        "input_path",
+        help="Path to input CSV file containing events",
+    )
+    parser.add_argument(
+        "output_path",
+        help="""
+            Path to output CSV file where classified events will be saved. If it already
+            exists, it will be overwritten.
+        """,
+    )
+    args = parser.parse_args()
+
     public_access_threshold = 0.5
-    classify_events(csv_file, public_access_threshold)
+    classify_events(args.input_path, args.output_path, public_access_threshold)
