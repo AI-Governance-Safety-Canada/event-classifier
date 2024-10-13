@@ -11,8 +11,22 @@ def classify_events(input_path, output_path, public_access_threshold=0.5):
     public_access_labels = ["open to the general public", "restricted access"]
 
     for _, row in events_df.iterrows():
-        location_match = (row['virtual'] or "Canada" in str(row['location_city']))
-        location_score = 1.0 if location_match else 0.0
+        location_score = pd.NA
+        if row["virtual"]:
+            location_score = 1.0
+        else:
+            for column in row.index:
+                if "location" not in column.lower():
+                    # This isn't a location field
+                    continue
+                if not isinstance(row[column], str):
+                    # This field isn't a string
+                    continue
+                if "Canada" in row[column]:
+                    location_score = 1.0
+                else:
+                    # This event isn't in Canada
+                    location_score = 0.0
         
         event_text = f"{row['title']} {row['description']}"
         public_access_classification = classifier(event_text, public_access_labels)
