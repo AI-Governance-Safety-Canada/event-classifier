@@ -1,3 +1,5 @@
+import argparse
+
 import pandas as pd
 from openai import OpenAI
 from apikey import OPENAI_API_KEY
@@ -27,12 +29,24 @@ def check_open_to_public(client, description):
     return response.choices[0].message.content.strip()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Classify events using ChatGPT")
+    parser.add_argument(
+        "input_path",
+        help="Path to input CSV file containing events",
+    )
+    parser.add_argument(
+        "output_path",
+        help="""
+            Path to output CSV file where classified events will be saved. If it already
+            exists, it will be overwritten.
+        """,
+    )
+    args = parser.parse_args()
 
     # TODO: find out how many tokens I use per transaction.
     client = OpenAI(api_key=OPENAI_API_KEY)
 
-    file_path = 'events_with_private.csv'
-    events_df = pd.read_csv(file_path)
+    events_df = pd.read_csv(args.intput_path)
 
     events_df['in_canada'] = events_df.apply(lambda row: check_event_in_canada(client, row['location_city'], row['virtual']), axis=1)
     events_df['open_to_public'] = events_df['description'].apply(lambda desc: check_open_to_public(client, desc) if pd.notnull(desc) else 'Unknown')
@@ -46,5 +60,4 @@ if __name__ == "__main__":
         (events_df['in_canada'].str.contains('True', case=False)) & 
         (events_df['open_to_public'].str.strip().str.casefold() == 'true')]
 
-    output_csv = 'chatgpt_private_events_results.csv'
-    filtered_events.to_csv(output_csv, index=False)
+    filtered_events.to_csv(args.output_path, index=False)
