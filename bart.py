@@ -10,7 +10,7 @@ def classify_events(input_path, output_path, public_access_threshold=0.5):
     # Define labels for public access classification
     public_access_labels = ["open to the general public", "restricted access"]
 
-    for _, row in events_df.iterrows():
+    for index, row in events_df.iterrows():
         location_score = pd.NA
         if row["virtual"]:
             location_score = 1.0
@@ -32,8 +32,9 @@ def classify_events(input_path, output_path, public_access_threshold=0.5):
         public_access_classification = classifier(event_text, public_access_labels)
         public_access_score = public_access_classification['scores'][public_access_classification['labels'].index("open to the general public")]
 
-        row["accessible_to_canadians"] = location_score
-        row["open_to_public"] = public_access_score
+        events_df.at[index, "accessible_to_canadians"] = location_score
+        events_df.at[index, "open_to_public"] = public_access_score
+        print(row)
 
     events_df.to_csv(output_path, index=False)
 
